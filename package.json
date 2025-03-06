@@ -2,7 +2,8 @@
   "name": "vef2-2025-v3-unnid-i-tima-main",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "npx prisma generate && tsc"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",
