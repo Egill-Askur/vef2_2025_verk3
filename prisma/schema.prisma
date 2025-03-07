@@ -23,12 +23,13 @@ model Categories {
 model Questions {
   id Int @id @default(autoincrement())
   desc String
-  category String
-  svar1 String
-  svar2 String
-  svar3 String
-  svar4 String
-  correctAnswer Int
+  categorySlug String @default("null")
+  questionSlug String @default("null")
+  svar1 String @default("null")
+  svar2 String @default("null")
+  svar3 String @default("null")
+  svar4 String @default("null")
+  correctAnswer Int @default(1)
 }
 /*
 model Answers {

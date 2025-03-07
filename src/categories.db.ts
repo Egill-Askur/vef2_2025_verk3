@@ -29,7 +29,8 @@ const QuestionSchema = z.object({
     .string()
     .min(3, 'description must be at least three letters')
     .max(1024, 'description must be at most 1024 letters'),
-  category: z.string(),
+  categorySlug: z.string(),
+  questionSlug: z.string(),
   svar1: z.string(),
   svar2: z.string(),
   svar3: z.string(),
@@ -39,12 +40,12 @@ const QuestionSchema = z.object({
 
 
 const QuestionToCreateSchema = z.object({
-  id: z.number(),
   desc: z
     .string()
     .min(3, 'description must be at least three letters')
     .max(1024, 'description must be at most 1024 letters'),
-  category: z.string(),
+  categorySlug: z.string(),
+  questionSlug: z.string(),
   svar1: z.string(),
   svar2: z.string(),
   svar3: z.string(),
@@ -89,6 +90,16 @@ export async function getCategories(
   //return mockCategories;
 }
 
+export async function getQuestions(
+  limit: number = 10,
+  offset: number = 0,
+): Promise<Array<Question>> {
+  const questions = await prisma.questions.findMany();
+  console.log('questions :>> ', questions);
+  return questions;
+  //retu
+}
+
 export async function getCategory(slugToFind: string): Promise<Category | null> {
   const cat = await prisma.categories.findUnique({
     where: {
@@ -100,6 +111,24 @@ export async function getCategory(slugToFind: string): Promise<Category | null> 
 
 }
 
+export async function getQuestionsByCategory(catslug: string): Promise<Array<Question>> {
+  const questionsOfCategory = await prisma.questions.findMany({
+    where: {
+      categorySlug: catslug
+    }
+  });
+
+  return questionsOfCategory ?? null;
+
+}
+
+export async function deleteCategory(slug: string) {
+  const category = await getCategory(slug)
+  await prisma.categories.delete({
+    where: { slug },
+  })
+  return
+}
 
 export function validateCategory(categoryToValidate: unknown) {
   const result = CategoryToCreateSchema.safeParse(categoryToValidate);
@@ -135,7 +164,7 @@ export async function createQuestion(questionToCreate: QuestionToCreate): Promis
   const createdQuestion = await prisma.questions.create({
     data: {
       desc: questionToCreate.desc,
-      category: questionToCreate.category,
+      categorySlug: questionToCreate.categorySlug,
       svar1: questionToCreate.svar1,
       svar2: questionToCreate.svar2,
       svar3: questionToCreate.svar3,
