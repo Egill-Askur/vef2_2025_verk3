@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
+import xss from "xss";
 
 const CategorySchema = z.object({
   id: z.number(),
@@ -140,11 +141,13 @@ export function validateQuestion(questionToValidate: unknown) {
 }
 
 export async function createCategory(categoryToCreate: CategoryToCreate): Promise<Category> {
+  const sanTitle = xss(categoryToCreate.title)
+  
   const createdCategory = await prisma.categories.create({
     data: {
-      title: categoryToCreate.title,
+      title: sanTitle,
       //slug: categoryToCreate.title.toLowerCase().replaceAll(' ', '-'),
-      slug: slugify(categoryToCreate.title)
+      slug: xss(slugify(categoryToCreate.title))
       /*
       svar1: categoryToCreate.svar1,
       svar2: categoryToCreate.svar2,
@@ -161,13 +164,13 @@ export async function createCategory(categoryToCreate: CategoryToCreate): Promis
 export async function createQuestion(questionToCreate: QuestionToCreate): Promise<Question> {
   const createdQuestion = await prisma.questions.create({
     data: {
-      desc: questionToCreate.desc,
-      categorySlug: slugify(questionToCreate.categorySlug),
-      questionSlug: slugify(questionToCreate.questionSlug),
-      svar1: questionToCreate.svar1,
-      svar2: questionToCreate.svar2,
-      svar3: questionToCreate.svar3,
-      svar4: questionToCreate.svar4,
+      desc: xss(questionToCreate.desc),
+      categorySlug: xss(slugify(questionToCreate.categorySlug)),
+      questionSlug: xss(slugify(questionToCreate.questionSlug)),
+      svar1: xss(questionToCreate.svar1),
+      svar2: xss(questionToCreate.svar2),
+      svar3: xss(questionToCreate.svar3),
+      svar4: xss(questionToCreate.svar4),
       correctAnswer: questionToCreate.correctAnswer
     },
   });
@@ -185,8 +188,8 @@ export async function updateCategory(slug: string, body: any): Promise<Category>
   const updatedCategory = await prisma.categories.update({
     where: { slug },
     data: {
-      title: body.title,
-      slug: slugify(body.title)
+      title: xss(body.title),
+      slug: xss(slugify(body.title))
       //slug: body.title.toLowerCase().replace(/\s+/g, '-'), // Update slug if name changes
     },
   });
@@ -199,13 +202,13 @@ export async function updateQuestion(questionSlug: string, body: any): Promise<Q
   const updatedQuestion = await prisma.questions.update({
     where: { questionSlug },
     data: {
-      desc: body.desc,
-      categorySlug: body.categorySlug,
-      questionSlug: body.questionSlug,
-      svar1: body.svar1,
-      svar2: body.svar2,
-      svar3: body.svar3,
-      svar4: body.svar4,
+      desc: xss(body.desc),
+      categorySlug: xss(body.categorySlug),
+      questionSlug: xss(body.questionSlug),
+      svar1: xss(body.svar1),
+      svar2: xss(body.svar2),
+      svar3: xss(body.svar3),
+      svar4: xss(body.svar4),
       correctAnswer: body.correctAnswer
     },
   });
