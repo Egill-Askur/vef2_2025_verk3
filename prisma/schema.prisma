@@ -24,7 +24,7 @@ model Questions {
   id Int @id @default(autoincrement())
   desc String
   categorySlug String @default("null")
-  questionSlug String @default("null")
+  questionSlug String @unique
   svar1 String @default("null")
   svar2 String @default("null")
   svar3 String @default("null")

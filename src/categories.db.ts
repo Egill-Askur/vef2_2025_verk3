@@ -56,28 +56,6 @@ const QuestionToCreateSchema = z.object({
 type Question = z.infer<typeof QuestionSchema>;
 type QuestionToCreate = z.infer<typeof QuestionToCreateSchema>;
 
-
-
-/*
-const mockCategories: Array<Category> = [
-  {
-    id: 1,
-    slug: 'html',
-    title: 'HTML',
-  },
-  {
-    id: 2,
-    slug: 'css',
-    title: 'CSS',
-  },
-  {
-    id: 3,
-    slug: 'js',
-    title: 'JavaScript',
-  },
-];
-*/
-
 const prisma = new PrismaClient();
 
 export async function getCategories(
@@ -111,6 +89,17 @@ export async function getCategory(slugToFind: string): Promise<Category | null> 
 
 }
 
+export async function getQuestion(slugToFind: string): Promise<Question | null> {
+  const cat = await prisma.questions.findUnique({
+    where: {
+      questionSlug: slugToFind
+    }
+  });
+
+  return cat ?? null;
+
+}
+
 export async function getQuestionsByCategory(catslug: string): Promise<Array<Question>> {
   const questionsOfCategory = await prisma.questions.findMany({
     where: {
@@ -130,6 +119,14 @@ export async function deleteCategory(slug: string) {
   return
 }
 
+export async function deleteQuestion(questionSlug: string) {
+  const category = await getQuestion(questionSlug)
+  await prisma.questions.delete({
+    where: { questionSlug },
+  })
+  return
+}
+
 export function validateCategory(categoryToValidate: unknown) {
   const result = CategoryToCreateSchema.safeParse(categoryToValidate);
 
@@ -138,7 +135,7 @@ export function validateCategory(categoryToValidate: unknown) {
 
 export function validateQuestion(questionToValidate: unknown) {
   const result = QuestionToCreateSchema.safeParse(questionToValidate);
-
+  
   return result;
 }
 
@@ -146,7 +143,8 @@ export async function createCategory(categoryToCreate: CategoryToCreate): Promis
   const createdCategory = await prisma.categories.create({
     data: {
       title: categoryToCreate.title,
-      slug: categoryToCreate.title.toLowerCase().replaceAll(' ', '-'),
+      //slug: categoryToCreate.title.toLowerCase().replaceAll(' ', '-'),
+      slug: slugify(categoryToCreate.title)
       /*
       svar1: categoryToCreate.svar1,
       svar2: categoryToCreate.svar2,
@@ -164,7 +162,8 @@ export async function createQuestion(questionToCreate: QuestionToCreate): Promis
   const createdQuestion = await prisma.questions.create({
     data: {
       desc: questionToCreate.desc,
-      categorySlug: questionToCreate.categorySlug,
+      categorySlug: slugify(questionToCreate.categorySlug),
+      questionSlug: slugify(questionToCreate.questionSlug),
       svar1: questionToCreate.svar1,
       svar2: questionToCreate.svar2,
       svar3: questionToCreate.svar3,
@@ -176,15 +175,40 @@ export async function createQuestion(questionToCreate: QuestionToCreate): Promis
   return createdQuestion;
 }
 
+export function slugify(str: string) {
+  str = str.toLowerCase().replace(/\s+/g, '-')
+  return str;
+}
+
 export async function updateCategory(slug: string, body: any): Promise<Category> {
   console.log("Running updateCategory")
   const updatedCategory = await prisma.categories.update({
     where: { slug },
     data: {
       title: body.title,
-      slug: body.title.toLowerCase().replace(/\s+/g, '-'), // Update slug if name changes
+      slug: slugify(body.title)
+      //slug: body.title.toLowerCase().replace(/\s+/g, '-'), // Update slug if name changes
     },
   });
 
   return updatedCategory
+}
+
+export async function updateQuestion(questionSlug: string, body: any): Promise<Question> {
+  console.log("Running updateQuestion")
+  const updatedQuestion = await prisma.questions.update({
+    where: { questionSlug },
+    data: {
+      desc: body.desc,
+      categorySlug: body.categorySlug,
+      questionSlug: body.questionSlug,
+      svar1: body.svar1,
+      svar2: body.svar2,
+      svar3: body.svar3,
+      svar4: body.svar4,
+      correctAnswer: body.correctAnswer
+    },
+  });
+
+  return updatedQuestion
 }
